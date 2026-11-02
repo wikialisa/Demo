@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full bg-slate-100 text-slate-800">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Quản Trị Quốc Gia Smart Solar & EV Charging</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        gov: {
+                            50: '#f0f4f8',
+                            100: '#d9e2ec',
+                            700: '#102a43',
+                            800: '#0b69a3',
+                            900: '#003366',
+                            red: '#da251d',
+                            gold: '#d97706'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        /* iOS Toggle Switch Style */
+        .ios-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .ios-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .ios-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #e2e8f0;
+            transition: .3s;
+            border-radius: 24px;
+            border: 1px solid #cbd5e1;
+        }
+        .ios-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        input:checked + .ios-slider {
+            background-color: #10b981;
+            border-color: #059669;
+        }
+        input:checked + .ios-slider:before {
+            transform: translateX(20px);
+        }
+
+        /* iOS-style Pill Button Press Effect */
+        .ios-btn {
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .ios-btn:active {
+            transform: scale(0.96);
+            opacity: 0.85;
+        }
+
+        .gov-card {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans overflow-hidden bg-slate-100 text-slate-800">
+
+    <!-- SOLID GOVERNMENT HEADER BANNER (TOP) -->
+    <header class="bg-gov-900 border-b-4 border-gov-red text-white shrink-0 shadow-md">
+        <div class="w-full px-4 sm:px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gov-red flex items-center justify-center text-amber-300 font-bold border-2 border-amber-300 shadow-sm shrink-0">
+                    <i data-lucide="shield-check" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <div class="font-extrabold text-sm sm:text-base tracking-wide uppercase text-white flex items-center gap-2">
+                        HỆ THỐNG GIÁM SÁT & QUẢN TRỊ NĂNG LƯỢNG NLPGROUP
+                    </div>
+                    <div class="text-[11px] text-slate-300 tracking-wider">SMART SOLAR & EV CHARGING HUB - NLP GROUP / VNE GREEN</div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="hidden md:flex items-center gap-4 border-r border-slate-700 pr-4 text-xs">
+                    <span class="flex items-center gap-1.5 text-emerald-400 font-semibold bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-500/30">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> HỆ THỐNG TRỰC TUYẾN
+                    </span>
+                    <span class="text-slate-300 font-mono" id="live-clock">10:42:15</span>
+                </div>
+
+                <!-- NEW: PROTOTYPE SIMULATION TOOLBAR -->
+                <div class="flex items-center gap-2 border-l border-slate-700 pl-4">
+                    <button onclick="triggerSimulatedArcFault()" class="ios-btn bg-gov-red hover:bg-red-700 text-white font-bold text-[11px] px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-sm">
+                        <i data-lucide="zap-off" class="w-3.5 h-3.5"></i> Giả Lập Lỗi AFCI
+                    </button>
+                    <button onclick="triggerSimulatedChargeSession()" class="ios-btn bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-sm">
+                        <i data-lucide="play-circle" class="w-3.5 h-3.5"></i> Giả Lập Phiên Sạc
+                    </button>
+                    <!-- NEW: GOOGLE STUDIO AI BUTTON -->
+                    <button onclick="openModal('aiAssistantModal')" class="ios-btn bg-amber-500 hover:bg-amber-600 text-slate-900 font-extrabold text-[11px] px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-sm">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Trợ Lý Gemini AI
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Avatar" class="w-9 h-9 rounded-full ring-2 ring-amber-400 object-cover">
+                    <div class="hidden sm:block text-left">
+                        <div class="text-xs font-bold text-white">BQT. Nguyễn Văn Quản Trị</div>
+                        <div class="text-[10px] text-slate-300 uppercase font-semibold">Trung Tâm Vận Hành NLP Group</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- FULL SCREEN BODY (SIDEBAR + MAIN CONTENT) -->
+    <div class="flex-1 flex overflow-hidden w-full">
+
+        <!-- SOLID NAVIGATION SIDEBAR -->
+        <aside class="w-64 bg-white border-r border-slate-300 flex flex-col justify-between shrink-0 z-20 shadow-sm">
+            <div class="py-4">
+                <div class="px-4 pb-3 mb-2 border-b border-slate-200">
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Danh mục điều hành</p>
+                </div>
+                <!-- iOS Style Segmented Nav Buttons -->
+                <nav class="px-2 space-y-1">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn ios-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all bg-gov-900 text-white shadow-sm">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                        <span>Tổng Quan Điều Hành</span>
+                    </button>
+
+                    <button onclick="switchTab('hubs')" id="nav-hubs" class="nav-btn ios-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-all">
+                        <i data-lucide="zap" class="w-4 h-4 text-gov-800"></i>
+                        <span>Quản Lý Tủ & Trụ Sạc</span>
+                        <span class="ml-auto bg-slate-200 text-slate-800 text-[10px] px-2 py-0.5 rounded-full font-bold">12</span>
+                    </button>
+
+                    <button onclick="switchTab('afci')" id="nav-afci" class="nav-btn ios-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-all">
+                        <i data-lucide="shield-alert" class="w-4 h-4 text-gov-red"></i>
+                        <span>Cảnh Báo Hồ Quang AFCI</span>
+                        <span class="ml-auto bg-gov-red text-white text-[10px] px-2 py-0.5 rounded-full font-bold">1</span>
+                    </button>
+
+                    <button onclick="switchTab('tenants')" id="nav-tenants" class="nav-btn ios-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-all">
+                        <i data-lucide="building-2" class="w-4 h-4 text-gov-800"></i>
+                        <span>Đại Lý Sub-Tenants B2B</span>
+                    </button>
+
+                    <button onclick="switchTab('users')" id="nav-users" class="nav-btn ios-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-all">
+                        <i data-lucide="users" class="w-4 h-4 text-gov-800"></i>
+                        <span>Quản Lý Chủ Thể / User</span>
+                    </button>
+
+                    <button onclick="switchTab('transactions')" id="nav-transactions" class="nav-btn ios-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-all">
+                        <i data-lucide="receipt" class="w-4 h-4 text-gov-800"></i>
+                        <span>Nhật Ký Giao Dịch</span>
+                    </button>
+
+                    <button onclick="switchTab('tariffs')" id="nav-tariffs" class="nav-btn ios-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-all">
+                        <i data-lucide="settings" class="w-4 h-4 text-gov-800"></i>
+                        <span>Cấu Hình & Gateway IoT</span>
+                    </button>
+                </nav>
+            </div>
+
+            <div class="p-3 border-t border-slate-200 bg-slate-50">
+                <div class="text-[11px] text-slate-500 font-medium space-y-1">
+                    <div>Tiêu chuẩn kết nối: <strong class="text-gov-900">OCPP 1.6J / 2.0.1</strong></div>
+                    <div>Hệ thống PCCC: <strong class="text-emerald-700">AFCI Active</strong></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN MAIN CONTENT AREA -->
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 bg-slate-100">
+
+            <!-- PROTOTYPE GUIDED STEPS BAR -->
+            <div class="bg-amber-50 border border-amber-300 p-3 rounded-2xl flex flex-wrap items-center justify-between gap-2 text-xs">
+                <div class="flex items-center gap-2 font-bold text-amber-900">
+                    <span class="bg-amber-500 text-white px-2 py-0.5 rounded-full text-[10px] uppercase">Prototype Tương Tác</span>
+                    <span>Thử nghiệm luồng phản ứng giao tiếp điều khiển thời gian thực & AI:</span>
+                </div>
+                <div class="flex flex-wrap gap-2 text-[11px]">
+                    <button onclick="showPortDetailModal('HUB-SOLAR-01', 2)" class="ios-btn bg-white hover:bg-amber-100 text-amber-900 font-semibold px-2.5 py-1 rounded-lg border border-amber-300">
+                        1. Chi Tiết Cổng P2 (OCPP)
+                    </button>
+                    <button onclick="showAfciDetailModal('HUB-SOLAR-04')" class="ios-btn bg-white hover:bg-amber-100 text-amber-900 font-semibold px-2.5 py-1 rounded-lg border border-amber-300">
+                        2. Xử Lý Hồ Quang AFCI
+                    </button>
+                    <button onclick="openModal('gatewayConfigModal')" class="ios-btn bg-white hover:bg-amber-100 text-amber-900 font-semibold px-2.5 py-1 rounded-lg border border-amber-300">
+                        3. Cấu Hình 4G/Wifi Gateway
+                    </button>
+                    <button onclick="askAiToAnalyzeAfci()" class="ios-btn bg-gov-900 hover:bg-gov-800 text-amber-300 font-bold px-2.5 py-1 rounded-lg border border-gov-700 flex items-center gap-1">
+                        <i data-lucide="sparkles" class="w-3 h-3"></i> 4. AI Phân Tích AFCI
+                    </button>
+                </div>
+            </div>
+
+            <!-- SEARCH / ACTION TOOLBAR -->
+            <div class="bg-white p-3.5 rounded-2xl border border-slate-300 flex flex-col sm:flex-row justify-between items-center gap-3 shadow-sm">
+                <div class="relative w-full sm:w-96">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="user-search-input" onkeyup="filterUsers()" placeholder="Tra cứu mã trụ, mã hồ quang, chủ thể..." class="w-full bg-slate-50 text-xs text-slate-900 pl-9 pr-4 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-gov-800 transition">
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <button onclick="openModal('addHubModal')" class="ios-btn px-4 py-2 bg-gov-900 hover:bg-gov-800 text-white font-bold rounded-xl text-xs flex items-center gap-2 shadow-sm">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i> Thêm Trụ / Tủ Sạc Mới
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB 1: DASHBOARD -->
+            <div id="tab-dashboard" class="tab-content space-y-6">
+                <!-- Government Style Summary Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="gov-card p-4 rounded-2xl border-l-4 border-l-amber-500">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Tổng Điện Solar Phát</p>
+                                <h3 class="text-2xl font-black mt-1 text-slate-900 font-mono">1,428.5 <span class="text-xs font-normal text-slate-500">kWh</span></h3>
+                            </div>
+                            <div class="p-2.5 bg-amber-100 text-amber-700 rounded-xl">
+                                <i data-lucide="sun" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <p class="mt-3 text-[11px] text-emerald-700 font-bold flex items-center gap-1">
+                            <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> +14.2% so với cùng kỳ
+                        </p>
+                    </div>
+
+                    <div class="gov-card p-4 rounded-2xl border-l-4 border-l-emerald-600">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Công Suất Sạc Trực Tuyến</p>
+                                <h3 class="text-2xl font-black mt-1 text-slate-900 font-mono">42.8 <span class="text-xs font-normal text-slate-500">kW</span></h3>
+                            </div>
+                            <div class="p-2.5 bg-emerald-100 text-emerald-700 rounded-xl">
+                                <i data-lucide="zap" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <p class="mt-3 text-[11px] text-slate-600 font-medium">Chuẩn OCPP 1.6J Connected (8/12)</p>
+                    </div>
+
+                    <div class="gov-card p-4 rounded-2xl border-l-4 border-l-gov-red">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">An Toàn Hồ Quang AFCI</p>
+                                <h3 class="text-2xl font-black mt-1 text-gov-red font-mono">01 Cảnh Báo</h3>
+                            </div>
+                            <div class="p-2.5 bg-rose-100 text-gov-red rounded-xl">
+                                <i data-lucide="shield-alert" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <p class="mt-3 text-[11px] text-gov-red font-bold flex items-center gap-1">
+                            <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> Phát hiện tại HUB-SOLAR-04
+                        </p>
+                    </div>
+
+                    <div class="gov-card p-4 rounded-2xl border-l-4 border-l-gov-800">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Đại Lý B2B Sub-Tenants</p>
+                                <h3 class="text-2xl font-black mt-1 text-slate-900 font-mono">08 Đơn Vị</h3>
+                            </div>
+                            <div class="p-2.5 bg-sky-100 text-gov-800 rounded-xl">
+                                <i data-lucide="building-2" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <p class="mt-3 text-[11px] text-slate-600 font-medium">Phí quản lý SaaS: 500k/AFCI</p>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 gov-card p-5 rounded-2xl space-y-4">
+                        <div class="flex justify-between items-center pb-3 border-b border-slate-200">
+                            <div>
+                                <h2 class="text-sm font-bold text-slate-900 uppercase">Biểu Đồ Điện Năng Theo Thời Gian Thực</h2>
+                                <p class="text-xs text-slate-500">Giám sát công suất Solar vs Nhu cầu sạc phụ tải EV</p>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold border border-slate-300">Live Data</span>
+                        </div>
+                        <div class="h-64 w-full">
+                            <canvas id="solarRealtimeChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="gov-card p-5 rounded-2xl space-y-4 flex flex-col justify-between">
+                        <div class="pb-3 border-b border-slate-200">
+                            <h2 class="text-sm font-bold text-slate-900 uppercase">Trạng Thái Hạ Tầng Sạc</h2>
+                            <p class="text-xs text-slate-500">Phân bổ tỷ lệ cổng sạc toàn hệ thống</p>
+                        </div>
+                        <div class="h-44 flex justify-center items-center">
+                            <canvas id="hubStatusChart"></canvas>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 text-center text-xs pt-3 border-t border-slate-200">
+                            <div class="bg-emerald-50 p-2 rounded-xl border border-emerald-200">
+                                <div class="font-bold text-emerald-700 text-sm">18</div>
+                                <div class="text-[10px] text-slate-600 font-medium">Đang Sạc</div>
+                            </div>
+                            <div class="bg-amber-50 p-2 rounded-xl border border-amber-200">
+                                <div class="font-bold text-amber-700 text-sm">10</div>
+                                <div class="text-[10px] text-slate-600 font-medium">Sẵn Sàng</div>
+                            </div>
+                            <div class="bg-rose-50 p-2 rounded-xl border border-rose-200">
+                                <div class="font-bold text-gov-red text-sm">02</div>
+                                <div class="text-[10px] text-slate-600 font-medium">Ngắt/Sự Cố</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Executive Data Table -->
+                <div class="gov-card rounded-2xl overflow-hidden">
+                    <div class="p-4 bg-slate-50 flex justify-between items-center border-b border-slate-300">
+                        <h2 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Danh Sách Trụ & Tủ Sạc Hoạt Động Trực Tuyến</h2>
+                        <button onclick="switchTab('hubs')" class="text-xs font-bold text-gov-800 hover:underline flex items-center gap-1">
+                            Xem toàn bộ 12 tủ sạc <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-200 text-slate-700 uppercase font-bold text-[11px] border-b border-slate-300">
+                                <tr>
+                                    <th class="px-4 py-3">Mã Tủ Sạc</th>
+                                    <th class="px-4 py-3">Vị Trí Lắp Đặt</th>
+                                    <th class="px-4 py-3">Công Suất PV</th>
+                                    <th class="px-4 py-3">Pin Lưu Trữ (BSS)</th>
+                                    <th class="px-4 py-3">Cổng Hoạt Động</th>
+                                    <th class="px-4 py-3">Nhiệt Độ</th>
+                                    <th class="px-4 py-3">Trạng Thái Vận Hành</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 bg-white" id="dashboard-hubs-tbody">
+                                <!-- Dynamic JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: HUBS MANAGEMENT -->
+            <div id="tab-hubs" class="tab-content hidden space-y-6">
+                <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-300">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900 uppercase">Quản Lý Trạm Sạc & Tủ Quang Điện Solar (OCPP Ready)</h2>
+                        <p class="text-xs text-slate-500">Giám sát công suất tấm pin PV, dung lượng pin BSS và điều khiển cổng sạc từ xa</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="hubs-grid-container">
+                    <!-- Dynamic Hub Cards -->
+                </div>
+            </div>
+
+            <!-- TAB 3: AFCI SAFETY -->
+            <div id="tab-afci" class="tab-content hidden space-y-6">
+                <div class="bg-white p-4 rounded-2xl border border-slate-300 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900 uppercase text-gov-red flex items-center gap-2">
+                            <i data-lucide="shield-alert" class="w-5 h-5"></i> Giám Sát Hồ Quang Điện (AFCI) & An Toàn PCCC Solar
+                        </h2>
+                        <p class="text-xs text-slate-500">Hệ thống ngắt mạch tự động chủ động khi phát hiện tia lửa điện hồ quang từ bộ AFCI</p>
+                    </div>
+                    <span class="px-3 py-1 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-bold">Modbus RS485 Active</span>
+                </div>
+
+                <!-- Emergency Alert Banner -->
+                <div class="gov-card p-5 rounded-2xl border-l-4 border-l-gov-red bg-rose-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="p-3 bg-gov-red text-white rounded-xl shadow-md">
+                            <i data-lucide="flame" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-900 text-sm">CẢNH BÁO HỒ QUANG ĐIỆN - HUB-SOLAR-04 (AEON Mall Tân Phú)</h3>
+                            <p class="text-xs text-slate-600 mt-0.5">Tần số nhiễu AFCI: 145 Hz. Chuỗi PV String-02 ghi nhận nhiệt độ 38°C.</p>
+                        </div>
+                    </div>
+                    <button onclick="remoteTripRelay('HUB-SOLAR-04')" class="ios-btn px-5 py-2.5 bg-gov-red hover:bg-rose-700 text-white font-bold rounded-xl text-xs shadow-md">
+                        KÍCH HOẠT NGẮT MẠCH KHẨN CẤP (TRIP RELAY)
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="gov-card p-4 rounded-2xl space-y-3">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-bold text-slate-900">AFCI Module #01</span>
+                            <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">An Toàn</span>
+                        </div>
+                        <div class="text-xs text-slate-500">Trạm Vincom Thảo Điền</div>
+                        <div class="flex justify-between text-xs pt-2 border-t border-slate-200 font-mono">
+                            <span>Tần số: <strong>12 Hz</strong></span>
+                            <span>Mạch: <strong class="text-emerald-700">Closed</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="gov-card p-4 rounded-2xl space-y-3 border-2 border-gov-red bg-rose-50/40">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-bold text-slate-900">AFCI Module #04</span>
+                            <span class="px-2 py-0.5 rounded bg-gov-red text-white font-bold text-[10px]">Cảnh Báo</span>
+                        </div>
+                        <div class="text-xs text-slate-500">AEON Mall Tân Phú</div>
+                        <div class="flex justify-between text-xs pt-2 border-t border-slate-200 font-mono">
+                            <span>Tần số: <strong class="text-gov-red font-bold">145 Hz</strong></span>
+                            <span>Mạch: <strong class="text-gov-red">Warning</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="gov-card p-4 rounded-2xl space-y-3">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-bold text-slate-900">AFCI Module #02</span>
+                            <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">An Toàn</span>
+                        </div>
+                        <div class="text-xs text-slate-500">Bến Xe Miền Đông</div>
+                        <div class="flex justify-between text-xs pt-2 border-t border-slate-200 font-mono">
+                            <span>Tần số: <strong>8 Hz</strong></span>
+                            <span>Mạch: <strong class="text-emerald-700">Closed</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="gov-card p-4 rounded-2xl space-y-3">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-bold text-slate-900">AFCI Module #03</span>
+                            <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">An Toàn</span>
+                        </div>
+    <!-- NEW MODAL: GOOGLE AI STUDIO / GEMINI INTERACTION -->
+    <div id="aiAssistantModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center hidden">
+        <div class="bg-white w-full max-w-2xl p-6 rounded-2xl border border-slate-300 shadow-2xl space-y-4 flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-3 shrink-0">
+                <div>
+                    <h3 class="font-bold text-gov-900 text-sm uppercase flex items-center gap-2">
+                        <i data-lucide="sparkles" class="w-5 h-5 text-amber-500"></i> Trợ Lý AI Chẩn Đoán Vận Hành (Google AI Studio)
+                    </h3>
+                    <p class="text-[11px] text-slate-500">Tích hợp Gemini 3 Flash truy xuất dữ liệu real-time từ Database Tủ Sạc & AFCI</p>
+                </div>
+                <button onclick="closeModal('aiAssistantModal')" class="text-slate-400 hover:text-slate-700"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <!-- Quick AI Prompt Buttons -->
+            <div class="flex flex-wrap gap-2 text-xs shrink-0 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                <span class="text-[10px] text-slate-400 font-bold uppercase w-full">Gợi ý chẩn đoán nhanh:</span>
+                <button onclick="runQuickAiPrompt('afci')" class="ios-btn px-2.5 py-1 bg-rose-100 text-gov-red font-semibold rounded-lg hover:bg-rose-200 border border-rose-300">
+                    Phân tích hồ quang HUB-SOLAR-04
+                </button>
+                <button onclick="runQuickAiPrompt('ocpp')" class="ios-btn px-2.5 py-1 bg-sky-100 text-gov-800 font-semibold rounded-lg hover:bg-sky-200 border border-sky-300">
+                    Đánh giá hạ tầng OCPP 1.6J
+                </button>
+                <button onclick="runQuickAiPrompt('revenue')" class="ios-btn px-2.5 py-1 bg-emerald-100 text-emerald-800 font-semibold rounded-lg hover:bg-emerald-200 border border-emerald-300">
+                    Dự báo doanh thu SaaS B2B
+                </button>
+            </div>
+
+            <!-- AI Chat Output Terminal -->
+            <div id="ai-chat-history" class="flex-1 bg-slate-900 text-slate-100 font-mono text-xs p-4 rounded-xl overflow-y-auto space-y-3 min-h-[220px]">
+                <div class="text-amber-400">[NLP GROUP AI]: Chào anh! Em là Trợ lý AI kết nối trực tiếp dữ liệu hệ thống Solar & Trụ sạc. Anh cần em chẩn đoán sự cố hay phân tích hiệu suất trạm sạc nào?</div>
+            </div>
+
+            <!-- AI Input Box -->
+            <div class="flex gap-2 shrink-0 pt-2 border-t border-slate-200">
+                <input type="text" id="ai-user-prompt" onkeypress="if(event.key==='Enter') sendAiQuery()" placeholder="Hỏi AI về trạng thái pin BSS, dòng nhiễu AFCI, gợi ý tăng giá trị sạc..." class="flex-1 bg-slate-50 text-slate-900 text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-gov-800">
+                <button onclick="sendAiQuery()" id="ai-send-btn" class="ios-btn px-4 py-2.5 bg-gov-900 hover:bg-gov-800 text-white font-bold rounded-xl text-xs flex items-center gap-2">
+                    <i data-lucide="send" class="w-4 h-4"></i> Gửi AI
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER END ... -->
+
+    <!-- NEW MODAL: PORT DETAIL & REMOTE COMMANDS -->
+    <div id="portDetailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center hidden">
+        <div class="bg-white w-full max-w-lg p-6 rounded-2xl border border-slate-300 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-3">
+                <div>
+                    <h3 class="font-bold text-slate-900 text-sm uppercase flex items-center gap-2">
+                        <i data-lucide="cpu" class="w-4 h-4 text-gov-800"></i> Điều Khiển Trực Tiếp Cổng Sạc <span id="port-modal-id" class="text-gov-800"></span>
+                    </h3>
+                    <p class="text-[11px] text-slate-500">Giao thức OCPP 1.6J WebSocket Stream Realtime</p>
+                </div>
+                <button onclick="closeModal('portDetailModal')" class="text-slate-400 hover:text-slate-700"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 text-xs">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase">Điện Áp & Dòng Điện</span>
+                    <div class="font-mono text-sm font-bold text-slate-800" id="port-modal-voltage">230V / 32A (7.3 kW)</div>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase">Trạng Thái WebSocket</span>
+                    <div class="font-mono text-xs font-bold text-emerald-700 flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> Connected
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Remote Commands -->
+            <div class="space-y-2">
+                <label class="text-xs font-bold text-slate-700">Lệnh Điều Khiển Từ Xa (Remote Commands):</label>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <button onclick="executeOcppCommand('RemoteStartTransaction')" class="ios-btn p-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center justify-center gap-2">
+                        <i data-lucide="play" class="w-4 h-4"></i> Remote Start Session
+                    </button>
+                    <button onclick="executeOcppCommand('RemoteStopTransaction')" class="ios-btn p-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl flex items-center justify-center gap-2">
+                        <i data-lucide="square" class="w-4 h-4"></i> Remote Stop Session
+                    </button>
+                    <button onclick="executeOcppCommand('UnlockConnector')" class="ios-btn p-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl flex items-center justify-center gap-2">
+                        <i data-lucide="unlock" class="w-4 h-4"></i> Mở Khóa Khớp Cáp
+                    </button>
+                    <button onclick="executeOcppCommand('ResetHard')" class="ios-btn p-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl flex items-center justify-center gap-2">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Khởi Động Lại Trụ (Reboot)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Command Log Terminal -->
+            <div class="bg-slate-900 text-emerald-400 font-mono text-[11px] p-3 rounded-xl h-28 overflow-y-auto space-y-1" id="port-command-log">
+                <div>[SYSTEM]: Khởi tạo phiên giao tiếp OCPP 1.6J WebSocket...</div>
+                <div>[STATUS]: Sẵn sàng nhận lệnh từ Trung tâm NLP Group.</div>
+            </div>
+
+            <div class="pt-2 flex justify-end">
+                <button onclick="closeModal('portDetailModal')" class="ios-btn px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-xl text-xs">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW MODAL: AFCI DETAILED INCIDENT RESPONSE -->
+    <div id="afciDetailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center hidden">
+        <div class="bg-white w-full max-w-md p-6 rounded-2xl border border-slate-300 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-3">
+                <h3 class="font-bold text-gov-red text-sm uppercase flex items-center gap-2">
+                    <i data-lucide="shield-alert" class="w-5 h-5"></i> Xử Lý Cảnh Báo Hồ Quang AFCI
+                </h3>
+                <button onclick="closeModal('afciDetailModal')" class="text-slate-400 hover:text-slate-700"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            
+            <div class="bg-rose-50 border border-rose-200 p-3 rounded-xl space-y-2 text-xs">
+                <div class="flex justify-between font-bold text-slate-900">
+                    <span>Mã Vị Trí: <strong id="afci-modal-hub">HUB-SOLAR-04</strong></span>
+                    <span class="text-gov-red">Mức Rủi Ro: CAO</span>
+                </div>
+                <div class="text-slate-600">Phát hiện dạng sóng nhiễu tần số 145Hz trên chuỗi PV String #02. Nguy cơ phóng điện hồ quang gây cháy nổ.</div>
+            </div>
+
+            <div class="space-y-2 text-xs">
+                <label class="font-bold text-slate-700">Quy Trình Phản Ứng Khẩn Cấp:</label>
+                <div class="space-y-2">
+                    <button onclick="remoteTripRelayAction(true)" class="ios-btn w-full py-2.5 bg-gov-red hover:bg-rose-700 text-white font-bold rounded-xl flex items-center justify-center gap-2">
+                        <i data-lucide="power" class="w-4 h-4"></i> 1. Ngắt Rơ-le Khẩn Cấp (Trip Relay Off)
+                    </button>
+                    <button onclick="sendTechnicianAlert()" class="ios-btn w-full py-2.5 bg-gov-800 hover:bg-slate-800 text-white font-bold rounded-xl flex items-center justify-center gap-2">
+                        <i data-lucide="send" class="w-4 h-4"></i> 2. Gửi Cảnh Báo SMS / Telegram Cho Kỹ Thuật Viện
+                    </button>
+                    <button onclick="remoteResetAfci()" class="ios-btn w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center justify-center gap-2">
+                        <i data-lucide="check-circle-2" class="w-4 h-4"></i> 3. Kích Hoạt Lại Sau Kiểm Tra (Reset AFCI)
+                    </button>
+                </div>
+            </div>
+
+            <div class="pt-2 flex justify-end">
+                <button onclick="closeModal('afciDetailModal')" class="ios-btn px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-xl text-xs">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW MODAL: GATEWAY CONFIG (SIM 4G VS WIFI FALLBACK) -->
+    <div id="gatewayConfigModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center hidden">
+        <div class="bg-white w-full max-w-md p-6 rounded-2xl border border-slate-300 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-3">
+                <h3 class="font-bold text-slate-900 text-sm uppercase flex items-center gap-2">
+                    <i data-lucide="wifi" class="w-4 h-4 text-gov-800"></i> Cấu Hình Kết Nối IoT Gateway
+                </h3>
+                <button onclick="closeModal('gatewayConfigModal')" class="text-slate-400 hover:text-slate-700"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            
+            <form onsubmit="saveGatewayConfig(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="font-semibold text-slate-700">Kênh Truyền Dữ Liệu Chính</label>
+                    <select id="gateway-primary" class="w-full mt-1 bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-semibold text-slate-800">
+                        <option value="wifi">Wifi Khách Hàng (Tối Ưu Phí - Chiết Khấu 15%)</option>
+                        <option value="4g">Sim 4G IoT Enterprise (Độc Lập Cao)</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
+                    <div>
+                        <div class="font-bold text-slate-800">Cơ Chế Fallback Dự Phòng</div>
+                        <div class="text-[10px] text-slate-500">Tự động chuyển qua Sim 4G khi đứt Wifi</div>
+                    </div>
+                    <label class="ios-switch">
+                        <input type="checkbox" id="gateway-fallback" checked>
+                        <span class="ios-slider"></span>
+                    </label>
+                </div>
+
+                <div>
+                    <label class="font-semibold text-slate-700">Chu Kỳ Đẩy Dữ Liệu Modbus RS485</label>
+                    <select class="w-full mt-1 bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-800">
+                        <option value="1">1 Giây (Thời gian thực)</option>
+                        <option value="5" selected>5 Giây (Tiêu chuẩn)</option>
+                        <option value="15">15 Giây (Tối ưu băng thông)</option>
+                    </select>
+                </div>
+
+                <div class="pt-3 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('gatewayConfigModal')" class="ios-btn px-4 py-2 bg-slate-100 text-slate-600 font-bold rounded-xl">Hủy</button>
+                    <button type="submit" class="ios-btn px-4 py-2 bg-gov-900 text-white font-bold rounded-xl">Lưu Cấu Hình</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD/EDIT USER -->
+    <div id="addUserModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center hidden">
+        <div class="bg-white w-full max-w-md p-6 rounded-2xl border border-slate-300 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-3">
+                <h3 class="font-bold text-slate-900 text-sm uppercase">Thêm Khách Hàng / Chủ Thể Mới</h3>
+                <button onclick="closeModal('addUserModal')" class="text-slate-400 hover:text-slate-700"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form onsubmit="handleCreateUser(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="text-slate-600 font-semibold">Họ và Tên</label>
+                    <input type="text" id="new-user-name" required class="w-full mt-1 bg-slate-50 text-slate-900 p-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-gov-800" placeholder="Nguyễn Văn A">
+                </div>
+                <div>
+                    <label class="text-slate-600 font-semibold">Số Điện Thoại Liên Hệ</label>
+                    <input type="text" id="new-user-phone" required class="w-full mt-1 bg-slate-50 text-slate-900 p-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-gov-800" placeholder="0987654321">
+                </div>
+                <div>
+                    <label class="text-slate-600 font-semibold">Nạp Số Dư Ban Đầu (VNĐ)</label>
+                    <input type="number" id="new-user-balance" value="500000" class="w-full mt-1 bg-slate-50 text-slate-900 p-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-gov-800">
+                </div>
+                <div class="pt-3 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('addUserModal')" class="ios-btn px-4 py-2 rounded-xl text-slate-600 font-bold bg-slate-100">Hủy</button>
+                    <button type="submit" class="ios-btn px-4 py-2 bg-gov-900 text-white font-bold rounded-xl">Tạo Tài Khoản</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD HUB -->
+    <div id="addHubModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center hidden">
+        <div class="bg-white w-full max-w-md p-6 rounded-2xl border border-slate-300 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-3">
+                <h3 class="font-bold text-slate-900 text-sm uppercase">Thêm Trụ / Tủ Sạc Mới</h3>
+                <button onclick="closeModal('addHubModal')" class="text-slate-400 hover:text-slate-700"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form onsubmit="handleCreateHub(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="text-slate-600 font-semibold">Tên Tủ Sạc / Mã ID</label>
+                    <input type="text" id="new-hub-name" required class="w-full mt-1 bg-slate-50 text-slate-900 p-2.5 rounded-xl border border-slate-300" placeholder="HUB-SOLAR-09">
+                </div>
+                <div>
+                    <label class="text-slate-600 font-semibold">Vị Trí Lắp Đặt</label>
+                    <input type="text" id="new-hub-location" required class="w-full mt-1 bg-slate-50 text-slate-900 p-2.5 rounded-xl border border-slate-300" placeholder="Khu Công Nghệ Cao, Q.9">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-slate-600 font-semibold">Công Suất PV (kWp)</label>
+                        <input type="number" id="new-hub-pv" value="15" class="w-full mt-1 bg-slate-50 text-slate-900 p-2.5 rounded-xl border border-slate-300">
+                    </div>
+                    <div>
+                        <label class="text-slate-600 font-semibold">Số Cổng Sạc</label>
+                        <input type="number" id="new-hub-ports" value="4" class="w-full mt-1 bg-slate-50 text-slate-900 p-2.5 rounded-xl border border-slate-300">
+                    </div>
+                </div>
+                <div class="pt-3 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('addHubModal')" class="ios-btn px-4 py-2 rounded-xl text-slate-600 font-bold bg-slate-100">Hủy</button>
+                    <button type="submit" class="ios-btn px-4 py-2 bg-gov-900 text-white font-bold rounded-xl">Thêm Trụ Sạc</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-12 right-6 z-50 bg-gov-900 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 translate-y-20 opacity-0 transition-all duration-300 border border-slate-700 text-xs font-bold">
+        <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400"></i>
+        <span id="toast-message">Thực thi lệnh thành công!</span>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // DATA STORES FOR PROTOTYPE SIMULATION
+        let hubData = [
+            { id: 'HUB-SOLAR-01', name: 'Trạm Vincom Thảo Điền', location: '159 Xa Lộ Hà Nội, TP. Thủ Đức', pvPower: 25, batterySoC: 92, activePorts: 3, totalPorts: 4, status: 'Active' },
+            { id: 'HUB-SOLAR-02', name: 'Bến Xe Miền Đông Mới', location: 'Hoàng Hữu Nam, TP. Thủ Đức', pvPower: 40, batterySoC: 85, activePorts: 4, totalPorts: 4, status: 'Active' },
+            { id: 'HUB-SOLAR-03', name: 'Parkson Hùng Vương', location: '126 Hồng Bàng, Q.5', pvPower: 18, batterySoC: 78, activePorts: 2, totalPorts: 2, status: 'Active' },
+            { id: 'HUB-SOLAR-04', name: 'AEON Mall Tân Phú', location: '30 Bờ Bao Tân Thắng, Q.Tân Phú', pvPower: 30, batterySoC: 45, activePorts: 1, totalPorts: 4, status: 'Alert' },
+            { id: 'HUB-SOLAR-05', name: 'Gigamall Phạm Văn Đồng', location: '240 Phạm Văn Đồng, TP. Thủ Đức', pvPower: 35, batterySoC: 88, activePorts: 3, totalPorts: 4, status: 'Active' },
+            { id: 'HUB-SOLAR-06', name: 'Khu Công Nghệ Cao Q9', location: 'Đường D1, TP. Thủ Đức', pvPower: 50, batterySoC: 95, activePorts: 4, totalPorts: 4, status: 'Active' }
+        ];
+
+        let userData = [
+            { id: 'USR-8821', name: 'Nguyễn Văn An', phone: '0903123456', balance: 1450000, usage: 245.8, status: 'Active' },
+            { id: 'USR-8822', name: 'Trần Thị Bình', phone: '0918987654', balance: 320000, usage: 89.2, status: 'Active' },
+            { id: 'USR-8823', name: 'Lê Hoàng Minh', phone: '0977112233', balance: 50000, usage: 12.5, status: 'Active' },
+            { id: 'USR-8824', name: 'Phạm Thanh Hương', phone: '0934556677', balance: 2800000, usage: 512.0, status: 'Active' },
+            { id: 'USR-8825', name: 'Công ty Diễm EV', phone: '0909998877', balance: 12500000, usage: 1890.5, status: 'Active' }
+        ];
+
+        let transactionData = [
+            { id: 'TX-9041', time: '10:35:12', user: 'Nguyễn Văn An', hub: 'HUB-SOLAR-01 (Cổng P2)', kwh: 18.5, total: '111,000 VNĐ', status: 'Charging' },
+            { id: 'TX-9040', time: '10:12:00', user: 'Trần Thị Bình', hub: 'HUB-SOLAR-02 (Cổng P1)', kwh: 32.0, total: '192,000 VNĐ', status: 'Completed' },
+            { id: 'TX-9039', time: '09:45:30', user: 'Công ty Diễm EV', hub: 'HUB-SOLAR-06 (Cổng P4)', kwh: 65.4, total: '392,400 VNĐ', status: 'Completed' }
+        ];
+
+        let realtimeChart, statusChart;
+
+        // TAB SWITCHING LOGIC
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            const targetTab = document.getElementById('tab-' + tabId);
+            if (targetTab) targetTab.classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-gov-900', 'text-white', 'shadow-sm');
+                btn.classList.add('text-slate-700', 'hover:bg-slate-100');
+            });
+
+            const activeNav = document.getElementById('nav-' + tabId);
+            if (activeNav) {
+                activeNav.classList.add('bg-gov-900', 'text-white', 'shadow-sm');
+                activeNav.classList.remove('text-slate-700', 'hover:bg-slate-100');
+            }
+        }
+
+        // RENDER FUNCTIONS
+        function renderDashboardTable() {
+            const tbody = document.getElementById('dashboard-hubs-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = hubData.map(h => `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="px-4 py-3 font-mono font-bold text-gov-800">${h.id}</td>
+                    <td class="px-4 py-3 font-semibold text-slate-900">${h.name}</td>
+                    <td class="px-4 py-3 font-mono text-emerald-700 font-bold">${h.pvPower} kWp</td>
+                    <td class="px-4 py-3 font-mono">${h.batterySoC}% BSS</td>
+                    <td class="px-4 py-3">${h.activePorts}/${h.totalPorts} Cổng</td>
+                    <td class="px-4 py-3 font-mono">32°C</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${h.status === 'Alert' ? 'bg-rose-100 text-gov-red border border-rose-300' : 'bg-emerald-100 text-emerald-800 border border-emerald-300'}">
+                            ${h.status === 'Alert' ? 'AFCI Warning' : 'Hoạt Động'}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderHubCards() {
+            const container = document.getElementById('hubs-grid-container');
+            if (!container) return;
+            container.innerHTML = hubData.map(h => `
+                <div class="gov-card p-5 rounded-2xl space-y-4">
+                    <div class="flex justify-between items-start border-b border-slate-200 pb-3">
+                        <div>
+                            <span class="text-[10px] font-bold font-mono text-gov-800 bg-sky-100 px-2 py-0.5 rounded-full">${h.id}</span>
+                            <h3 class="font-bold text-slate-900 text-sm mt-1">${h.name}</h3>
+                            <p class="text-[11px] text-slate-500">${h.location}</p>
+                        </div>
+                        <span class="w-3 h-3 rounded-full ${h.status === 'Alert' ? 'bg-gov-red animate-ping' : 'bg-emerald-500'}"></span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                            <span class="text-[10px] text-slate-400 font-sans uppercase font-bold">Solar PV</span>
+                            <div class="text-sm font-bold text-emerald-700">${h.pvPower} kWp</div>
+                        </div>
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                            <span class="text-[10px] text-slate-400 font-sans uppercase font-bold">Pin BSS</span>
+                            <div class="text-sm font-bold text-gov-800">${h.batterySoC}%</div>
+                        </div>
+                    </div>
+                    <div class="space-y-2 pt-1">
+                        <span class="text-[11px] font-bold text-slate-700 flex justify-between">
+                            <span>Điều khiển cổng sạc (OCPP):</span>
+                            <span>${h.activePorts}/${h.totalPorts} đang dùng</span>
+                        </span>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            ${Array.from({ length: h.totalPorts }).map((_, idx) => `
+                                <button onclick="showPortDetailModal('${h.id}', ${idx + 1})" class="ios-btn p-2 rounded-xl border flex items-center justify-between font-mono ${idx < h.activePorts ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'bg-slate-50 border-slate-200 text-slate-600'}">
+                                    <span>P${idx + 1}</span>
+                                    <span class="text-[10px] font-sans font-bold">${idx < h.activePorts ? 'BUSY' : 'IDLE'}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderUsersTable() {
+            const tbody = document.getElementById('users-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = userData.map(u => `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="px-4 py-3 font-mono font-bold text-slate-700">${u.id}</td>
+                    <td class="px-4 py-3 font-bold text-slate-900">${u.name}</td>
+                    <td class="px-4 py-3 font-mono">${u.phone}</td>
+                    <td class="px-4 py-3 font-mono font-bold text-emerald-700">${u.balance.toLocaleString()} VNĐ</td>
+                    <td class="px-4 py-3 font-mono">${u.usage} kWh</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">Hoạt động</span>
+                    </td>
+                    <td class="px-4 py-3 flex gap-2">
+                        <button onclick="topUpUser('${u.id}')" class="ios-btn text-xs bg-gov-800 text-white font-bold px-2.5 py-1 rounded-lg">+ Nạp Tiền</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderTransactionsTable() {
+            const tbody = document.getElementById('transactions-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = transactionData.map(t => `
+                <tr class="hover:bg-slate-50">
+                    <td class="px-4 py-3 font-mono font-bold text-slate-800">${t.id}</td>
+                    <td class="px-4 py-3 font-mono">${t.time}</td>
+                    <td class="px-4 py-3 font-bold text-slate-900">${t.user}</td>
+                    <td class="px-4 py-3">${t.hub}</td>
+                    <td class="px-4 py-3 font-mono font-bold text-emerald-700">${t.kwh} kWh</td>
+                    <td class="px-4 py-3 font-mono font-bold text-slate-900">${t.total}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-0.5 rounded ${t.status === 'Charging' ? 'bg-amber-100 text-amber-800 animate-pulse' : 'bg-emerald-100 text-emerald-800'} font-bold text-[10px]">
+                            ${t.status}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // CHARTS INITIALIZATION
+        function initCharts() {
+            const ctxRealtime = document.getElementById('solarRealtimeChart')?.getContext('2d');
+            if (ctxRealtime) {
+                realtimeChart = new Chart(ctxRealtime, {
+                    type: 'line',
+                    data: {
+                        labels: ['06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00'],
+                        datasets: [
+                            {
+                                label: 'Phát Điện Solar (kW)',
+                                data: [12, 45, 88, 120, 95, 40, 5],
+                                borderColor: '#d97706',
+                                backgroundColor: 'rgba(217, 119, 6, 0.1)',
+                                fill: true,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Tiêu Thụ Sạc EV (kW)',
+                                data: [10, 25, 60, 85, 90, 75, 50],
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                fill: true,
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+
+            const ctxStatus = document.getElementById('hubStatusChart')?.getContext('2d');
+            if (ctxStatus) {
+                statusChart = new Chart(ctxStatus, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Đang Sạc', 'Sẵn Sàng', 'Sự Cố/Ngắt'],
+                        datasets: [{
+                            data: [18, 10, 2],
+                            backgroundColor: ['#10b981', '#f59e0b', '#da251d']
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+            }
+        }
+
+        // MODAL HELPERS & ACTIONS
+        function openModal(id) {
+            document.getElementById(id)?.classList.remove('hidden');
+        }
+        function closeModal(id) {
+            document.getElementById(id)?.classList.add('hidden');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            if (toast && toastMsg) {
+                toastMsg.innerText = msg;
+                toast.classList.remove('translate-y-20', 'opacity-0');
+                setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+            }
+        }
+
+        function showPortDetailModal(hubId, portNo) {
+            document.getElementById('port-modal-id').innerText = `${hubId} - Cổng P${portNo}`;
+            openModal('portDetailModal');
+        }
+
+        function executeOcppCommand(cmd) {
+            const log = document.getElementById('port-command-log');
+            if (log) {
+                const now = new Date().toLocaleTimeString();
+                log.innerHTML += `<div>[${now}] Executed command: <strong>${cmd}</strong> -> SUCCESS (200 OK)</div>`;
+                log.scrollTop = log.scrollHeight;
+            }
+            showToast(`Đã gửi lệnh ${cmd} qua OCPP!`);
+        }
+
+        function showAfciDetailModal(hubId) {
+            document.getElementById('afci-modal-hub').innerText = hubId;
+            openModal('afciDetailModal');
+        }
+
+        function remoteTripRelay(hubId) {
+            showToast(`Đã kích hoạt ngắt Rơ-le khẩn cấp cho ${hubId}!`);
+        }
+        function remoteTripRelayAction() {
+            showToast("Đã ngắt Rơ-le mạch AFCI khẩn cấp!");
+            closeModal('afciDetailModal');
+        }
+        function sendTechnicianAlert() {
+            showToast("Đã phát tin nhắn SMS/Telegram cho kỹ thuật viên!");
+        }
+        function remoteResetAfci() {
+            showToast("Đã khôi phục trạng thái AFCI an toàn!");
+            closeModal('afciDetailModal');
+        }
+
+        function saveGatewayConfig(e) {
+            e.preventDefault();
+            closeModal('gatewayConfigModal');
+            showToast("Đã cập nhật cấu hình kết nối 4G/Wifi Gateway!");
+        }
+
+        function triggerSimulatedArcFault() {
+            showToast("CẢNH BÁO: Phát hiện hồ quang giả lập tại HUB-SOLAR-04!");
+            switchTab('afci');
+        }
+
+        function triggerSimulatedChargeSession() {
+            const newTx = {
+                id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
+                time: new Date().toLocaleTimeString(),
+                user: 'Nguyễn Văn An',
+                hub: 'HUB-SOLAR-05 (Cổng P1)',
+                kwh: (Math.random() * 10 + 2).toFixed(1),
+                total: '45,000 VNĐ',
+                status: 'Charging'
+            };
+            transactionData.unshift(newTx);
+            renderTransactionsTable();
+            showToast("Khởi tạo phiên sạc mới giả lập thành công!");
+        }
+
+        function handleCreateUser(e) {
+            e.preventDefault();
+            const name = document.getElementById('new-user-name').value;
+            const phone = document.getElementById('new-user-phone').value;
+            const balance = parseFloat(document.getElementById('new-user-balance').value) || 0;
+            userData.push({
+                id: 'USR-' + Math.floor(1000 + Math.random() * 9000),
+                name, phone, balance, usage: 0, status: 'Active'
+            });
+            renderUsersTable();
+            closeModal('addUserModal');
+            showToast(`Đã tạo tài khoản cho ${name}`);
+        }
+
+        function handleCreateHub(e) {
+            e.preventDefault();
+            const id = document.getElementById('new-hub-name').value;
+            const location = document.getElementById('new-hub-location').value;
+            const pvPower = parseFloat(document.getElementById('new-hub-pv').value) || 20;
+            const totalPorts = parseInt(document.getElementById('new-hub-ports').value) || 2;
+            hubData.push({ id, name: id, location, pvPower, batterySoC: 100, activePorts: 0, totalPorts, status: 'Active' });
+            renderHubCards();
+            renderDashboardTable();
+            closeModal('addHubModal');
+            showToast(`Đã thêm tủ sạc ${id}`);
+        }
+
+        function topUpUser(id) {
+            const u = userData.find(x => x.id === id);
+            if (u) {
+                u.balance += 500000;
+                renderUsersTable();
+                showToast(`Đã nạp +500.000 VNĐ cho ${u.name}`);
+            }
+        }
+
+        function filterUsers() {
+            const q = document.getElementById('user-search-input').value.toLowerCase();
+            const filtered = userData.filter(u => u.name.toLowerCase().includes(q) || u.phone.includes(q) || u.id.toLowerCase().includes(q));
+            const tbody = document.getElementById('users-tbody');
+            if (tbody) {
+                tbody.innerHTML = filtered.map(u => `
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-4 py-3 font-mono font-bold text-slate-700">${u.id}</td>
+                        <td class="px-4 py-3 font-bold text-slate-900">${u.name}</td>
+                        <td class="px-4 py-3 font-mono">${u.phone}</td>
+                        <td class="px-4 py-3 font-mono font-bold text-emerald-700">${u.balance.toLocaleString()} VNĐ</td>
+                        <td class="px-4 py-3 font-mono">${u.usage} kWh</td>
+                        <td class="px-4 py-3"><span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">Hoạt động</span></td>
+                        <td class="px-4 py-3"><button onclick="topUpUser('${u.id}')" class="ios-btn text-xs bg-gov-800 text-white font-bold px-2.5 py-1 rounded-lg">+ Nạp Tiền</button></td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // GOOGLE AI STUDIO (GEMINI API) INTEGRATION
+        async function sendAiQuery(customPrompt) {
+            const inputEl = document.getElementById('ai-user-prompt');
+            const promptText = customPrompt || inputEl.value.trim();
+            if (!promptText) return;
+
+            const chatHistory = document.getElementById('ai-chat-history');
+            const sendBtn = document.getElementById('ai-send-btn');
+
+            // Render User Prompt
+            chatHistory.innerHTML += `<div class="text-slate-300 font-sans"><strong class="text-sky-400">[BQT]:</strong> ${promptText}</div>`;
+            if (!customPrompt) inputEl.value = '';
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            // Loading Indicator
+            const loadingId = 'loading-' + Date.now();
+            chatHistory.innerHTML += `<div id="${loadingId}" class="text-amber-400 flex items-center gap-2"><span class="animate-spin">⏳</span> Đang đọc Database & Phân tích qua Google Gemini API...</div>`;
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+            sendBtn.disabled = true;
+
+            // Prepare Current Database Context
+            const dbContext = {
+                activeHubs: hubData,
+                afciAlerts: [
+                    { hubId: 'HUB-SOLAR-04', noiseFreq: '145Hz', stringTemp: '38°C', riskLevel: 'HIGH' }
+                ],
+                subTenantsCount: 8,
+                totalSolarPowerKWh: 1428.5
+            };
+
+            const systemInstruction = `Bạn là trợ lý AI chuyên gia kỹ thuật và vận hành cho hệ thống quản trị năng lượng mặt trời Smart Solar & Trạm sạc xe điện EV của NLP GROUP (VNE Green). 
+            Hãy trả lời ngắn gọn, chuyên nghiệp, chính xác theo phong cách kỹ thuật cao, trích dẫn số liệu cụ thể từ Database hiện tại: ${JSON.stringify(dbContext)}.
+            Đưa ra hướng xử lý thực tế (ví dụ: ngắt rơ-le khẩn cấp, điều chỉnh giá sạc peak/off-peak, kiểm tra WebSocket OCPP).`;
+
+            try {
+                const apiKey = ""; // Canvas runtime injects actual key
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: promptText }] }],
+                        systemInstruction: { parts: [{ text: systemInstruction }] }
+                    })
+                });
+
+                const data = await response.json();
+                const aiReply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Không thể trích xuất phản hồi từ Gemini API.';
+
+                document.getElementById(loadingId)?.remove();
+                chatHistory.innerHTML += `<div class="text-emerald-300 font-sans leading-relaxed border-l-2 border-emerald-500 pl-2 py-1 my-1"><strong class="text-amber-400 font-mono">[GEMINI AI]:</strong> ${aiReply.replace(/\n/g, '<br>')}</div>`;
+            } catch (err) {
+                document.getElementById(loadingId)?.remove();
+                chatHistory.innerHTML += `<div class="text-rose-400 font-sans">[LỖI]: Không thể kết nối API Google AI Studio: ${err.message}. Đã kích hoạt phản hồi dự phòng từ bộ nhớ cục bộ.</div>`;
+            } finally {
+                sendBtn.disabled = false;
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            }
+        }
+
+        function runQuickAiPrompt(type) {
+            openModal('aiAssistantModal');
+            if (type === 'afci') {
+                sendAiQuery("Phân tích lỗi hồ quang điện AFCI tại HUB-SOLAR-04 và đề xuất lệnh ngắt Rơ-le khẩn cấp.");
+            } else if (type === 'ocpp') {
+                sendAiQuery("Đánh giá độ ổn định kết nối WebSocket OCPP 1.6J trên toàn bộ 12 trạm sạc.");
+            } else if (type === 'revenue') {
+                sendAiQuery("Dự báo doanh thu phí dịch vụ SaaS 500k/bộ AFCI từ danh sách 8 đại lý B2B.");
+            }
+        }
+
+        function askAiToAnalyzeAfci() {
+            runQuickAiPrompt('afci');
+        }
+
+        // INITIAL LOAD
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            renderDashboardTable();
+            renderHubCards();
+            renderUsersTable();
+            renderTransactionsTable();
+            initCharts();
+
+            setInterval(() => {
+                const clock = document.getElementById('live-clock');
+                if (clock) clock.innerText = new Date().toLocaleTimeString();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
